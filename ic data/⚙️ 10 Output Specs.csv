@@ -1,0 +1,19 @@
+﻿Column2,Column3,Column4,Column5,Column6,Column7,Column8
+ # , Danh mục , Trường dữ liệu , Kiểu , Ví dụ / Mặc định , Bắt buộc , Ghi chú 
+ 1 , KDP EBOOK , format_type , Enum , KPF / EPUB 3 , ✔️ , Sử dụng Kindle Create xuất KPF hoặc mã hóa EPUB 3 Fixed-Layout. KDP sẽ bỏ hỗ trợ MOBI cho dạng sách này. 
+ 2 , KDP EBOOK , rendition:layout , Enum , pre-paginated , ✔️ , Bắt buộc khai báo định dạng trang cố định trong file OPF (không được dùng reflowable). 
+ 3 , KDP EBOOK , fixed-layout , Bool , true , ✔️ , Siêu dữ liệu xác nhận sách thuộc định dạng cố định. 
+ 4 , KDP EBOOK , original-resolution , String , 2880x1800 , ✔️ , Kích thước pixel gốc. KDP khuyên dùng độ phân giải này (Zoom Factor 150%) để hình nét nhất trên máy tính bảng. 
+ 5 , KDP EBOOK , orientation-lock , Enum , none / portrait / landscape , ⚠️ ," Khóa hướng màn hình. Mặc định là ""none"" (cho phép xoay), nên dùng ""landscape"" nếu sách thiết kế trang đôi. "
+ 6 , KDP EBOOK , primary-writing-mode , Enum , horizontal-lr , ✔️ , Hướng đọc văn bản (từ trái sang phải cho tiếng Việt/Anh). 
+ 7 , KDP EBOOK , color_space , Enum , sRGB , ✔️ , Màn hình thiết bị đọc dùng hệ màu RGB. Tuyệt đối không dùng hệ màu in ấn CMYK sẽ gây sai lệch màu. 
+ 8 , KDP EBOOK , image_format , Enum , JPEG / PNG , ✔️ , KDP khuyến nghị JPEG cho hầu hết ảnh chụp/minh họa để cân bằng chất lượng và dung lượng. 
+ 9 , KDP EBOOK , image_ppi , Int , 300 , ✔️ , Mật độ điểm ảnh tối thiểu 300 PPI để đảm bảo hiển thị sắc nét trên màn hình HD. 
+ 10 , KDP EBOOK , embed_fonts , Bool , true , ✔️ , Phải nhúng (embed) toàn bộ font chữ vào file. Đây là tiêu chuẩn bắt buộc của sách fixed-layout. 
+ 11 , KDP EBOOK , text_pop_ups , Bool , true , ⚠️ , KDP cực kỳ khuyến nghị dùng Region Magnification (Text Pop-Ups) cho sách thiếu nhi để độc giả dễ đọc trên thiết bị nhỏ. 
+ 12 , KDP EBOOK , hybrid_text , Bool , false , ✔️ , Không được trộn lẫn văn bản có thể dàn trang (reflowable) và cố định (fixed) trong cùng một quyển sách. 
+ 13 , KDP EBOOK , cover_image_file , File , cover.jpg , ✔️ ," Bìa nộp file độc lập trên hệ thống KDP, không gộp chung thành trang đầu tiên (Page 1) bên trong ruột sách. "
+ 14 , KDP EBOOK , cover_dimensions , String , 2560x1600px , ✔️ , Tỷ lệ 1.6:1 là tỷ lệ chuẩn. Dung lượng file bìa không vượt quá 50MB. 
+ 15 , KDP EBOOK , ncx_toc , Bool , true , ✔️ , Bắt buộc phải có Mục lục hệ thống (Logical TOC / NCX) để độc giả điều hướng bằng menu của máy đọc sách. 
+ 16 , KDP EBOOK , html_toc , Bool , true , ⚠️ , Mục lục HTML nằm trong các trang của sách. Dù sách ít trang/sách ảnh vẫn nên có để nâng cao trải nghiệm. 
+ 17 , KDP EBOOK , max_file_size , Int , 650 , ✔️ , KDP giới hạn dung lượng file tải lên cho sách điện tử tối đa là 650 MB. Cần tối ưu ảnh nếu vượt mức này. 

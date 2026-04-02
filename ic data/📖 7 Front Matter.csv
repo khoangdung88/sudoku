@@ -1,0 +1,12 @@
+﻿Column2,Column3,Column4,Column5,Column6,Column7,Column8
+ # , Trang (Thành phần) , Trường dữ liệu , Kiểu , Nội dung / Ví dụ , Bắt buộc , Ghi chú (Đặc thù sách ít chữ - Fixed Layout trên KDP) 
+ 1 , HALF TITLE PAGE , half_title , Image / Fixed Page , Tiêu đề ngắn: Phó 2 Hàng hải , [ ] ," Trình bày dạng ảnh tĩnh. KDP Fixed Layout khóa cứng toàn bộ bố cục trang, chữ không tự động co giãn theo màn hình. "
+ 2 , TITLE PAGE , title_page , Image / Fixed Page ," Tiêu đề, Tác giả: Phạm Thông ", [x] , Toàn bộ chữ và hình ảnh được nhúng vào thiết kế nguyên bản. Độc giả không thể tùy chỉnh font chữ (user font settings = false). 
+ 3 , COPYRIGHT PAGE , copyright , Image / Fixed Page , © 2026 Phạm Thông / ISBN... , [x] ," Văn bản bị khóa cứng vào thiết kế, độc giả không thể bôi đen hay copy text. Không hỗ trợ tính năng đọc màn hình (Screen Reader) cho người khiếm thị. "
+ 4 , DEDICATION PAGE , dedication , Image / Fixed Page , Lời tặng , [ ] ," Nếu có chữ, KDP khuyến nghị tích hợp tính năng ""Text Pop-Ups"" (Khung phóng to chữ) bằng công cụ Kindle Kids' Book Creator để độc giả dễ đọc trên thiết bị di động. "
+ 5 , TABLE OF CONTENTS , toc_visual & ncx , Image & Meta , Mục lục / Contents , [x] , Bắt buộc tạo Mục lục điều hướng (Logical TOC ẩn) trên KDP. Trang Mục lục hiển thị bằng hình ảnh trên sách phải được gán liên kết click thủ công. 
+ 6 , FOREWORD / PREFACE / INTRO , front_matter_text , Image / Fixed Page ," Lời tựa, Giới thiệu ", [ ] ," Thiết kế có thể khóa cố định chiều hiển thị (xoay ngang hoặc xoay dọc). Văn bản dài bắt buộc phải đủ lớn từ file gốc, hoặc dùng Text Pop-Ups để đảm bảo trải nghiệm đọc trên Kindle App. "
+ 7 , LIST OF ABBREVIATIONS , abbrev_list , Image / Fixed Page , Bảng chữ viết tắt , [ ] , Lưu ý: Tính năng tìm kiếm từ khóa (Search Text) bên trong ứng dụng Kindle có thể không hoạt động với sách ít chữ nếu văn bản được xuất hoàn toàn dưới dạng ảnh raster (JPEG/PNG). 
+ 8 , ACKNOWLEDGMENTS , acknowledgments , Image / Fixed Page , Lời cảm ơn , [ ] ," File thiết kế giữ nguyên 100% hình dạng gốc trên các thiết bị hỗ trợ: Fire tablets, Kindle E-reader (màn hình cảm ứng), và ứng dụng Kindle iOS/Android. "
+,,,,,,
+l,,,,,,

@@ -1,0 +1,29 @@
+﻿# , Thành phần , Trường dữ liệu , Kiểu , Ví dụ / Mặc định , Đơn vị , Bắt buộc , Ghi chú
+1, RUNNING HEADER , runhead_enabled , Bool , false , - , Không ," KDP Fixed-Layout (sách ít chữ) hiển thị toàn màn hình (pre-paginated), thiết bị không hỗ trợ Running Header sinh tự động."
+2, RUNNING HEADER , runhead_recto_content , Enum , none , - , Không , Bỏ qua do không dùng tính năng running header.
+3, RUNNING HEADER , runhead_verso_content , Enum , none , - , Không , Bỏ qua do không dùng tính năng running header.
+4, RUNNING HEADER , runhead_separator , String , none , - , Không , Không áp dụng cho thể loại Fixed-Layout.
+5, RUNNING HEADER , runhead_position_y , Float , 0 , inch , Không , Bỏ qua do thiết kế trang cố định hoàn toàn.
+6, RUNNING HEADER , runhead_suppress_pages , String , all , - , Không , Ẩn tiêu đề đầu trang ở tất cả các trang.
+7, FOLIO (PAGE NUMBER) , folio_enabled , Bool , false , - , Không , Hệ thống đọc sách không tự đánh số trang. Muốn có số trang phải thiết kế cứng (hard-coded) trực tiếp vào ảnh nền.
+8, FOLIO (PAGE NUMBER) , folio_position , Enum , none , - , Không , Vị trí phụ thuộc hoàn toàn vào file ảnh thiết kế của bạn.
+9, FOLIO (PAGE NUMBER) , folio_format_frontmatter , Enum , none , - , Không ," Gộp chung thành file ảnh toàn trang, hệ thống không tự chia format chữ La Mã hay Ả Rập."
+10, FOLIO (PAGE NUMBER) , folio_format_body , Enum , none , - , Không , Không áp dụng cho Fixed Layout.
+11, FOLIO (PAGE NUMBER) , folio_suppress_pages , String , all , - , Không , Ẩn toàn bộ hệ thống đánh số trang tự động của thiết bị Kindle.
+12, CHAPTER OPENER , opener_page_side , Enum , recto / either , - , Không , Trang mở đầu tùy ý hoặc tuân theo thiết kế trang đôi (synthetic spreads) thiết lập trong Kindle Create.
+13, CHAPTER OPENER , opener_top_space , Float , 0 , inch , Không ," Phủ kín màn hình, không dùng khoảng trắng thụt lùi từ phía trên."
+14, CHAPTER OPENER , opener_show_number , Bool , false , - , Không ," Không đánh số tự động, chữ và số phải được làm phẳng vào ảnh bìa chương."
+15, CHAPTER OPENER , opener_number_prefix , String , none , - , Không , Không áp dụng.
+16, CHAPTER OPENER , opener_has_image , Bool , true , - , Có , Sách ít chữ/sách trẻ em bắt buộc dùng hình ảnh minh họa bao trọn trang mở đầu.
+17, BLANK PAGES , blank_page_text , String , This page intentionally left blank , - , Có , Tiêu chuẩn QA Amazon cấm để trang trắng hoàn toàn (người đọc lầm tưởng lỗi file). Phải có dòng chữ cảnh báo hoặc chi tiết ảnh nhỏ.
+18, BLANK PAGES , blank_page_show_text , Bool , true , - , Có , Bắt buộc bật hiển thị chữ nếu bạn bắt buộc phải tạo 1 trang trống nhằm giữ cấu trúc trang đôi.
+19, PART TITLE PAGE , part_title_style , Enum , full-page , - , Không , Hiển thị dưới dạng 1 trang hình ảnh tĩnh đẩy đủ (Pre-paginated layout).
+20, PART TITLE PAGE , part_title_content , String , Ảnh tĩnh / Text Pop-ups , - , Không , Nội dung được vẽ trực tiếp vào nền hoặc thiết lập khung phóng to (Text Pop-ups) trong Kindle Create.
+21, PART TITLE PAGE , part_title_verso_blank , Bool , false , - , Không ," Khuyến cáo không để mặt sau trắng tinh trừ khi có chữ ""Intentionally left blank""."
+22, FOOTNOTES & ENDNOTES , note_type , Enum , text pop-up , - , Không , Định dạng Fixed Layout không hỗ trợ click nhảy chú thích. Mọi chú thích nhỏ cần được làm thành khung Text Pop-up (phóng to chữ) để dễ đọc.
+23, FOOTNOTES & ENDNOTES , note_numbering , Enum , none , - , Không , Không hỗ trợ đánh số chú thích tự động.
+24, FOOTNOTES & ENDNOTES , note_marker_style , Enum , none , - , Không , Không áp dụng.
+25, FOOTNOTES & ENDNOTES , endnote_placement , Enum , none , - , Không , Không áp dụng.
+26, CROSS-REFERENCES , xref_format , String , none , - , Không ," Sách Fixed Layout (ít chữ) không hỗ trợ chọn văn bản (text selection), tra từ điển, hay link chéo giữa các chương."
+27, CROSS-REFERENCES , xref_fig_format , String , none , - , Không , Không áp dụng.
+28, CROSS-REFERENCES , xref_table_format , String , none , - , Không , Mã HTML bảng biểu không hoạt động trong định dạng này. Mọi bảng biểu đều phải lưu xuất dưới dạng ảnh chụp nền cố định.

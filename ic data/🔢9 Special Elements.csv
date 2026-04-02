@@ -1,0 +1,14 @@
+﻿ # , Loại , Trường dữ liệu , Kiểu , Ví dụ / Mặc định , Bắt buộc , Ghi chú 
+1, Metadata , low_content_checkbox , Bool , true , [x] ," Bắt buộc đánh dấu ""Low-content book"" trong tab Categories khi setup. Nếu không tick hoặc tick sai, sách sẽ bị KDP từ chối. "
+2, Metadata , isbn_option , Enum , Publish without ISBN / Own ISBN , [x] , KDP không cấp ISBN miễn phí cho sách Low-content. Phải chọn xuất bản không có ISBN hoặc tự mua ISBN riêng. 
+3, Metadata , transparency_codes , Bool , false , [x] , Sách Low-content xuất bản không có ISBN sẽ không đủ điều kiện sử dụng mã minh bạch (Transparency codes). 
+4, Print Options , ink_and_paper_type , Enum , Black ink and white paper , [x] ," Quyết định giá in và số trang tối đa. Có thể chọn Black/Cream, Standard Color/White, Premium Color/White. "
+5, Print Options , trim_size , Enum ," 6"" x 9"" / 8.5"" x 11"" ", [x] ," 6""x9"" là tiêu chuẩn cho sổ tay (Journal); 8.5""x11"" thích hợp cho Planner/Workbook cần không gian viết lớn. "
+6, Print Options , bleed_settings , Enum , Bleed / No Bleed , [x] ," Nếu thiết kế sổ tay có đường kẻ hoặc họa tiết tràn ra sát mép giấy, bắt buộc chọn ""Bleed"". "
+7, Manuscript , page_count , Integer , 120 , [x] , Tối thiểu 24 trang. Tối đa 828 trang (đối với mực đen/trắng) hoặc ít hơn tùy vào định dạng giấy và màu in. 
+8, Manuscript , bleed_size_calculation , Float , +0.125 , [ ] ," Nếu bật Bleed, phải cộng thêm 0.125"" (3.2 mm) vào lề Top, Bottom và Outside của file PDF thiết kế nội dung. "
+9, Manuscript , inside_gutter_margin , Float , 0.375 , [x] ," Đơn vị inch. Phụ thuộc số trang: 24-150 trang (tối thiểu 0.375""); 151-300 trang (0.5""); 301-500 trang (0.625""). "
+10, Manuscript , outside_margin , Float , 0.25 / 0.375 , [x] ," Lề an toàn bên ngoài: Ít nhất 0.25"" nếu chọn No Bleed; và ít nhất 0.375"" nếu có Bleed. "
+11, Manuscript , element_resolution , Integer , 300 , [x] ," Đơn vị DPI. Mọi vector, đồ họa, pattern dùng trong trang nội dung và bìa phải đạt tối thiểu 300 DPI. "
+12, Cover , barcode_reservation , String ," 2"" x 1.2"" ", [x] ," Bắt buộc chừa một vùng trống 2"" x 1.2"" (50.8 x 30.5 mm) ở góc dưới cùng bên phải bìa sau để KDP tự chèn mã vạch. Tuyệt đối không để text/hình ảnh quan trọng tại đây. "
+13, File Format , interior_file_type , Enum , PDF , [x] ," Nội dung bên trong của Low-content bắt buộc upload dưới dạng PDF, tất cả các font chữ đều phải được nhúng (embedded). "

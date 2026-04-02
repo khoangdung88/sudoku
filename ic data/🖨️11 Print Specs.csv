@@ -1,0 +1,23 @@
+﻿ # , Danh mục , Trường dữ liệu , Kiểu , Ví dụ / Mặc định , Đơn vị , Bắt buộc , Ghi chú 
+1, PAPER , paper_type , Enum , uncoated , - , Có ," Sách ít chữ trên KDP (sổ tay, planner) bắt buộc in trên giấy không phủ (uncoated). "
+2, PAPER , paper_weight , Float , 90 , gsm , Có , Tương đương định lượng 55# tiêu chuẩn cho cấu hình giấy trắng/kem của KDP. 
+3, PAPER , paper_color , Enum , white / cream , - , Có , Mực đen trên giấy trắng hoặc kem là cấu hình tối ưu chi phí in ấn nhất. 
+4, PAPER , paper_opacity , Int , N/A , % , Không ," Thông số do nhà máy in của Amazon kiểm soát, không mở tùy chỉnh cho publisher. "
+5, PAPER , acid_free , Bool , true , - , Không , KDP mặc định sử dụng giấy acid-free cho mọi ấn phẩm in. 
+6, PRINTING , print_process , Enum , POD , - , Có , KDP áp dụng mô hình Print-On-Demand (In theo yêu cầu). 
+7, PRINTING , color_printing , Enum , 1/1 , - , Có , Bản in 1/1 (đen/đen) áp dụng cho ruột sách ít chữ để tối đa hóa biên độ lợi nhuận. 
+8, PRINTING , print_quantity , Int , 1 , bản , Có , Khối lượng in tối thiểu của hệ thống POD trên Amazon là 1 bản. 
+9, PRINTING , print_resolution , Int , 300 , dpi , Có ," Yêu cầu bắt buộc để các nét kẻ (lines) hay lưới (grids) hiển thị sắc nét, không bị nhòe. "
+10, PRINTING , screening_method , Enum , N/A , - , Không , Hệ thống in kỹ thuật số tự động của KDP tự xử lý rasterization. 
+11, BINDING , binding_type , Enum , PB-perfect / case , - , Có , Tùy chọn Paperback (bìa mềm dán keo) hoặc Hardcover (bìa cứng) cho sổ tay/planner. 
+12, BINDING , spine_width , Float , Tự tính , inch , Có ," Tính tự động: (Số trang × 0.002252) đối với giấy trắng, (Số trang × 0.0025) đối với giấy kem. "
+13, BINDING , spine_text , String , Title , Author , Có , KDP quy định sách phải dày tối thiểu 79 trang mới được phép chèn text lên gáy sách. 
+14, BINDING , binding_glue_type , Enum , PUR / EVA , - , Không ," Amazon tự chọn loại keo công nghiệp phù hợp, không cần cấu hình vào tham số xuất file. "
+15, COVER , cover_finish , Enum , matte / glossy , - , Có ," Matte (mờ) tạo cảm giác sang trọng, Glossy (bóng) hạn chế bám bẩn và xước cho sổ tay. "
+16, COVER , cover_uv_spot , Bool , false , - , Không , Hệ thống KDP hiện không hỗ trợ in phủ UV cục bộ. 
+17, COVER , cover_emboss , Bool , false , - , Không , Hệ thống KDP không hỗ trợ dập nổi trên bìa. 
+18, COVER , cover_foil , Bool , false , - , Không , Hệ thống KDP không hỗ trợ ép kim/dán nhũ. 
+19, DELIVERY , file_delivery_format , Enum , PDF , - , Có , Hệ thống xuất bản cần khóa luồng render trực tiếp ra định dạng PDF chuẩn in ấn. 
+20, DELIVERY , delivery_package , String , PDF Only , - , Có ," Chỉ cần upload 2 file PDF độc lập (Ruột riêng, Bìa riêng), không cần đóng gói fonts/links. "
+21, DELIVERY , proof_type , Enum , digital soft , - , Có , Bắt buộc phải thông qua hệ thống Print Previewer (soft proof) trực tuyến của KDP để duyệt lỗi. 
+22, DELIVERY , delivery_deadline , Date , N/A , - , Không ," File tải lên sẽ tự động chuyển trạng thái in sau khi duyệt, không có khái niệm deadline bàn giao xưởng. "

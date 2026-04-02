@@ -1,0 +1,19 @@
+﻿Column2,Column3,Column4,Column5,Column6,Column7,Column8,Column9
+ # , Danh mục , Trường dữ liệu , Kiểu , Ví dụ / Mặc định , Đơn vị , Bắt buộc , Ghi chú 
+---,---,---,---,---,---,---,---
+ 1 , FORMAT , format_type , Enum , Fixed Layout , - , [x] , Định dạng bắt buộc cho sách nhiều hình/ít chữ để giữ nguyên thiết kế gốc. 
+ 2 , FORMAT , content_type , Enum , Children's Picture Book / Comics / Manga , - , [x] , Khai báo loại nội dung để KDP áp dụng chuẩn Pop-ups hay Virtual Panels. 
+ 3 , FORMAT , orientation , Enum , Fixed / Adjustable , - , [x] , Sách thiếu nhi thường Cố định (Fixed); Truyện tranh có thể Tùy chỉnh (Adjustable). 
+ 4 , DISPLAY , text_pop_ups , Bool , true , - , [ ] , Tính năng phóng to chữ (Text Pop-Ups) - thiết yếu cho sách thiếu nhi ít chữ để dễ đọc. 
+ 5 , DISPLAY , virtual_panels , Bool , true , - , [ ] , Phóng to theo từng khung tranh (Virtual Panels) - áp dụng cho truyện tranh/manga. 
+ 6 , DISPLAY , image_pop_ups , Bool , false , - , [ ] , Cửa sổ bật lên dành riêng cho hình ảnh (nếu các mảng đồ họa phức tạp). 
+ 7 , FEATURES , dictionary_lookup , Bool , false , - , - , Sách Fixed Layout KHÔNG hỗ trợ tính năng tra từ điển. 
+ 8 , FEATURES , user_font_settings , Bool , false , - , - , Độc giả KHÔNG thể tự thay đổi font chữ hay kích thước font trên thiết bị. 
+ 9 , FEATURES , text_highlighting , Bool , false , - , - , KHÔNG hỗ trợ highlight (tô sáng) hay tìm kiếm từ vựng (Word search). 
+ 10 , FEATURES , screen_reader , Bool , false , - , - , KHÔNG hỗ trợ trình đọc màn hình (Screen reader) cho người khiếm thị. 
+ 11 , DEVICES , fire_tablets , String , 2nd gen and later , - , [x] , Hỗ trợ trên máy tính bảng Fire (thế hệ thứ 2 trở lên). 
+ 12 , DEVICES , kindle_ereader , String , Touch screen models only , - , [x] , Chỉ hiển thị được trên các thiết bị Kindle E-reader có màn hình cảm ứng. 
+ 13 , DEVICES , mobile_apps , Enum , iOS / Android , - , [x] , Hỗ trợ hiển thị trên ứng dụng Kindle của điện thoại và máy tính bảng. 
+ 14 , DEVICES , cloud_reader , Bool , true , - , [x] , Có thể đọc trên nền web (Lưu ý: Không hỗ trợ các tính năng chọn/bôi đen văn bản). 
+ 15 , DELIVERY , creation_tool , Enum , Kindle Kids' Book Creator / Kindle Comic Creator , - , [x] , Công cụ KDP khuyên dùng để tạo Text pop-ups và Virtual panels. 
+ 16 , DELIVERY , export_format , Enum , .KPF , - , [x] , Định dạng file xuất khẩu tối ưu nhất từ công cụ để tải lên KDP. 

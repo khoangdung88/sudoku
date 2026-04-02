@@ -1,0 +1,13 @@
+﻿,Column2,Column3,Column4,Column5,Column6,Column7
+#, Danh mục , Trường dữ liệu , Kiểu , Ví dụ / Mặc định , Bắt buộc , Ghi chú 
+1, KDP FORMAT , format_type , Enum , Fixed Layout , x , Định dạng bố cục cố định (Fixed Layout) là bắt buộc để giữ nguyên thiết kế và tỷ lệ khung hình của sách ít chữ/nhiều ảnh. 
+2, KDP FORMAT , text_display , Enum , Text Pop-Ups , x , Tính năng phóng to vùng chữ (Pop-Ups) rất quan trọng để độc giả có thể đọc chữ nhỏ trên nền hình ảnh mà không cần zoom toàn màn hình. 
+3, COMPATIBILITY , kindle_ereaders , String , Touch screen models only , x ," Chỉ tương thích với các dòng máy đọc sách Kindle E-reader có màn hình cảm ứng, không hỗ trợ thiết bị đời cũ không cảm ứng. "
+4, COMPATIBILITY , fire_tablets , String , 2nd gen and later , x , Tương thích và hiển thị tốt trên các máy tính bảng Fire Tablet (từ thế hệ thứ 2 trở lên). 
+5, COMPATIBILITY , kindle_apps , String , iOS / Android / Cloud , x ," Sách hoạt động đầy đủ trên ứng dụng Kindle cho điện thoại (iOS, Android) và trên web (Kindle Cloud Reader). "
+6, FEATURES , dictionary_lookup , Boolean , True ,   ," Hỗ trợ tính năng tra từ điển khi chạm vào văn bản (với điều kiện chữ được thiết lập dưới dạng text layer, không bị gộp chết vào ảnh). "
+7, FEATURES , highlighting , Boolean , True ,   , Người đọc có thể sử dụng chức năng đánh dấu (highlight) các đoạn văn bản trong sách. 
+8, FEATURES , word_search , Boolean , True ,   , Tính năng tìm kiếm từ vựng hoặc cụm từ xuyên suốt nội dung sách được hỗ trợ. 
+9, FEATURES , x_ray , Boolean , True ,   ," Hỗ trợ tính năng X-Ray độc quyền của Kindle (phân tích, tra cứu nhanh nhân vật, địa điểm, thuật ngữ). "
+10, ACCESSIBILITY , screen_reader , Boolean , False ,   , Lưu ý quan trọng: Định dạng Fixed Layout cho sách ít chữ/sách ảnh KHÔNG hỗ trợ trình đọc màn hình (Screen reader) cho người khiếm thị. 
+11, CONTENT_TYPE , content_orientation , Enum , Portrait / Landscape ,   , Bố cục sách có thể khóa hướng hiển thị theo chiều dọc hoặc ngang tùy thuộc vào thiết kế mỹ thuật của trang sách. 

@@ -1,0 +1,12 @@
+# Requirements cho việc build exe
+# Cài đặt: pip install -r requirements-build.txt
+
+# Dependencies chính (giống requirements.txt)
+reportlab>=4.0.0
+Pillow>=10.0.0
+
+# Tool build
+pyinstaller>=6.0.0
+
+# Optional: để tối ưu kích thước exe
+# upx-binary (nếu có UPX installed)

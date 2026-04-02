@@ -1,0 +1,19 @@
+﻿ # , Trường dữ liệu , Kiểu dữ liệu , Ví dụ / Giá trị mặc định , Đơn vị , Bắt buộc , Ghi chú (Đặc thù eBook Fixed Layout trên KDP) 
+1, trim_width , Int , 1920 , pixel , [x] , Kích thước chiều rộng tính bằng điểm ảnh (pixel) thay vì inch. Nên dùng độ phân giải cao cho màn hình HD. 
+2, trim_height , Int , 1200 , pixel , [x] , Kích thước chiều cao tính bằng điểm ảnh (pixel). Kích thước file ảnh chính là trang hiển thị. 
+3, trim_size_preset , Enum , 16:9 / 8:5 / 4:3 , - , [x] , eBook quan tâm đến Tỷ lệ khung hình (Aspect Ratio) hơn là khổ giấy vật lý. Ảnh sẽ tự co giãn vừa thiết bị. 
+4, orientation , Enum , landscape / portrait , - , [x] , Hướng trang. Sách Fixed Layout bắt buộc phải khóa cứng hướng hiển thị (thường dùng Landscape cho sách tranh). 
+5, bleed_top , Float , 0 , pixel , [x] , KHÔNG CÓ TRÀN LỀ (BLEED) VẬT LÝ trong eBook. Đặt bằng 0. 
+6, bleed_bottom , Float , 0 , pixel , [x] , (Như trên) - Đặt bằng 0. 
+7, bleed_outside , Float , 0 , pixel , [x] , (Như trên) - Đặt bằng 0. 
+8, bleed_inside , Float , 0 , pixel , [x] , (Như trên) - Đặt bằng 0. 
+9, safe_zone , Float , 20 , pixel , [ ] , Vùng an toàn: Nên chừa một ít khoảng trống tính từ mép ảnh vào trong để chữ không bị lấp bởi giao diện app đọc sách. 
+10, margin_top , Float , 0 , pixel , [x] , KHÔNG CÓ LỀ (MARGINS) VẬT LÝ. Sách tràn viền đặt bằng 0. 
+11, margin_bottom , Float , 0 , pixel , [x] , (Như trên) - Đặt bằng 0. 
+12, margin_inside , Float , 0 , pixel , [x] , (Như trên) - Đặt bằng 0. 
+13, margin_outside , Float , 0 , pixel , [x] , (Như trên) - Đặt bằng 0. 
+14, gutter , Float , 0 , pixel , [x] , KHÔNG CÓ GÁY SÁCH vì eBook không đóng keo/chỉ. Đặt bằng 0. 
+15, column_count , Int , 1 , - , [x] ," Sách Fixed Layout là ảnh tĩnh, không sử dụng hệ thống chia cột văn bản động. "
+16, column_gap , Float , 0 , pixel , [ ] , Không áp dụng. 
+17, page_count_total , Int , (Tùy số lượng ảnh) , trang , [x] , Không bắt buộc là bội số của 4 hay 8 như sách in. Số trang tùy ý miễn tổng dung lượng file eBook < 650MB. 
+18, facing_pages , Bool , true / false , - , [x] ," Có thể cài đặt ""synthetic spreads"" (trang đôi ảo). Thiết bị đọc sẽ tự ghép 2 trang đơn thành 1 trang đôi khi xoay ngang máy. "

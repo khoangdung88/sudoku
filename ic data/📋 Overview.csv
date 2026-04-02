@@ -1,0 +1,16 @@
+﻿📚 BOOK INTERIOR – DATA REQUIREMENTS MASTER FILE,,,,,
+Engine: Book Factory  |  Mục đích: Chuẩn bị đầy đủ dữ liệu để tạo book interior tự động,,,,,
+,,,,,
+#,Sheet,Danh mục,Số trường,Mô tả ngắn,Mức ưu tiên
+1,📐 Page Setup,Thiết lập trang,18,"Trim size, margins, bleed, safe zone, orientation",🔴 Bắt buộc
+2,🔤 Typography,Kiểu chữ & bố cục văn bản,35,"Font, size, spacing, alignment cho mọi element",🔴 Bắt buộc
+3,📝 Content Structure,Cấu trúc nội dung,30,"Front/body/back matter, chapter, section, TOC",🔴 Bắt buộc
+4,🖼️ Images & Media,Hình ảnh & đa phương tiện,25,"Resolution, format, caption, placement, color mode",🔴 Bắt buộc
+5,🎨 Color & Style,Màu sắc & phong cách,20,"Color profile, ink limit, spot/CMYK/grayscale",🟡 Quan trọng
+6,📑 Page Elements,Thành phần trang,28,"Header, footer, folio, chapter opener, dividers",🔴 Bắt buộc
+7,📖 Front Matter,Phần đầu sách,22,"Title page, copyright, TOC, dedication, foreword",🔴 Bắt buộc
+8,📚 Back Matter,Phần cuối sách,20,"Index, bibliography, appendix, about author, colophon",🟡 Quan trọng
+9,🔢 Special Elements,Yếu tố đặc biệt,24,"Tables, equations, code blocks, sidebars, callouts",🟡 Quan trọng
+10,⚙️ Output Specs,Thông số xuất file,18,"PDF/X version, fonts embed, color space, bleed marks",🔴 Bắt buộc
+11,🖨️ Print Specs,Thông số in ấn,22,"Paper, binding, cover finish, quantity, coating",🟡 Quan trọng
+12,✅ QA Checklist,Kiểm tra chất lượng,30,"Preflight, proofing, accessibility checklist",🟢 Tùy chọn

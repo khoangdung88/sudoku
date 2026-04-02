@@ -1,0 +1,15 @@
+﻿Column2,Column3,Column4,Column5,Column6,Column7,Column8
+ # , Trang , Trường dữ liệu , Kiểu , Nội dung / Ví dụ , Bắt buộc , Ghi chú 
+ 1 , APPENDIX , appendix_count , Int , 0 , false ," Sách thiếu nhi/truyện tranh hiếm khi có phụ lục. Nếu có, toàn bộ phải được xuất thành các trang ảnh (Image pages) độc lập, không dùng text thuần. "
+ 2 , APPENDIX , appendix_label , Enum , none , false ," Không cần thiết lập nhãn động trong code. Các tiêu đề như ""Phụ lục A"" phải được vẽ/thiết kế và nhúng cứng vào file ảnh gốc. "
+ 3 , GLOSSARY , glossary_enabled , Bool , false , false , Khuyên không dùng. Tính năng tra từ điển (Dictionary Lookup) của Kindle bị vô hiệu hóa với định dạng sách ảnh. 
+ 4 , GLOSSARY , glossary_title , String , (Chữ trên ảnh) , false ," Nếu bắt buộc có bảng thuật ngữ, tiêu đề và nội dung phải được thiết kế thành 1 trang ảnh tĩnh độ phân giải cao (300 PPI). "
+ 5 , BIBLIOGRAPHY / REFERENCES , citation_style , Enum , none , false , KDP không yêu cầu chuẩn trích dẫn động cho sách ảnh. Hệ thống hyperlink thường bị khóa hoặc không hoạt động tối ưu trên sách truyện tranh/thiếu nhi. 
+ 6 , BIBLIOGRAPHY / REFERENCES , bibliography_format , Enum , image_page , false ," Chuyển đổi toàn bộ danh sách tài liệu tham khảo (nếu có) thành một hình ảnh, đảm bảo tỷ lệ khung hình (Aspect Ratio) đồng nhất với toàn bộ sách. "
+ 7 , INDEX , index_enabled , Bool , false , false , KHÔNG sử dụng. Hệ thống tìm kiếm (Search) và X-Ray của Kindle không thể quét chữ đã bị biến thành điểm ảnh (rasterized). 
+ 8 , INDEX , index_auto_generate, Bool , false , false , Không thể tự động tạo chỉ mục trên KDP cho định dạng Cố định (Fixed-layout). 
+ 9 , ABOUT THE AUTHOR , author_bio , String , (Văn bản trên ảnh) , true ," Thông tin tiểu sử nên ngắn gọn, tích hợp sẵn vào thiết kế của trang ảnh cuối cùng. Bắt buộc tạo Text Pop-up (phóng to chữ) nếu chữ quá nhỏ. "
+ 10, ABOUT THE AUTHOR , author_photo , File , author_page.jpg , false ," Thay vì chèn ảnh rời, toàn bộ trang tác giả (gồm bio + ảnh) phải xuất thành 1 file ảnh nguyên bản có kích thước khớp tuyệt đối với sách. "
+ 11, ABOUT THE AUTHOR , author_contact_website, String , Không có URL động , false ," Tuân thủ chính sách COPPA, sách thiếu nhi không nên chèn link website có thể click (Hyperlink) để tránh trẻ em vô tình thoát khỏi ứng dụng đọc. "
+ 12, COLOPHON , colophon_text , String , (Bản quyền/Credits) , true ," Trang bản quyền (Copyright/Colophon) là BẮT BUỘC. Toàn bộ thông tin bản quyền, họa sĩ, ISBN phải được nhúng cứng vào ảnh trang đầu hoặc trang cuối. "
+ 13, COLOPHON , colophon_typefaces_used, String , none , false ," Không cần khai báo thông số font nhúng (Embedded Fonts). Do toàn bộ chữ đã biến thành ảnh, thiết bị đọc của Kindle không cần can thiệp hệ thống font. "
