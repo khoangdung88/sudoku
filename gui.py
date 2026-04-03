@@ -41,6 +41,8 @@ def run_app() -> None:
     lesson_mode_var = tk.StringVar(value=LessonMode.A_PLUS_B.value)
     total_var = tk.IntVar(value=100)
 
+    puzzle_type_var = tk.StringVar(value="sudoku")
+
     easy_pct = tk.IntVar(value=34)
     med_pct = tk.IntVar(value=33)
     hard_pct = tk.IntVar(value=33)
@@ -75,6 +77,8 @@ def run_app() -> None:
     pdf_margin_in_var = tk.DoubleVar(value=0.5)
     pdf_puzzles_per_page_var = tk.IntVar(value=4)
     pdf_answers_per_page_var = tk.IntVar(value=6)
+    nurikabe_puzzles_per_page_var = tk.IntVar(value=4)
+    nurikabe_answers_per_page_var = tk.IntVar(value=6)
     pdf_show_level_var = tk.BooleanVar(value=True)
 
     pdf_label_font_var = tk.StringVar(value="Helvetica")
@@ -155,6 +159,12 @@ def run_app() -> None:
             pdf_margin_in_var.set(float(d.get("margin_in", float(pdf_margin_in_var.get()))))
             pdf_puzzles_per_page_var.set(int(d.get("puzzles_per_page", int(pdf_puzzles_per_page_var.get()))))
             pdf_answers_per_page_var.set(int(d.get("answers_per_page", int(pdf_answers_per_page_var.get()))))
+            nurikabe_puzzles_per_page_var.set(
+                int(d.get("nurikabe_puzzles_per_page", int(nurikabe_puzzles_per_page_var.get())))
+            )
+            nurikabe_answers_per_page_var.set(
+                int(d.get("nurikabe_answers_per_page", int(nurikabe_answers_per_page_var.get())))
+            )
             pdf_show_level_var.set(bool(d.get("show_level", bool(pdf_show_level_var.get()))))
 
             pdf_label_font_var.set(str(d.get("label_font", pdf_label_font_var.get())))
@@ -348,12 +358,16 @@ def run_app() -> None:
                     "page_height_in": page_h,
                     "orientation": str(s.get("orientation", "portrait")),
                     "margin_in": float(s.get("margin_in", 0.5)),
-                    "puzzles_per_page": int(s.get("puzzles_per_page", 4)),
+                    "puzzles_per_page": int(s.get("puzzles_per_page", 4))
+                    if puzzle_type_var.get() == "sudoku"
+                    else int(s.get("nurikabe_puzzles_per_page", 4)),
                     "show_level": bool(s.get("show_level", True)),
                     "level_field": "difficulty",
                     "title": str(s.get("pdf_title", "Sudoku")),
                     "answer_key_title": "Answer Key",
-                    "answers_per_page": int(s.get("answers_per_page", 6)),
+                    "answers_per_page": int(s.get("answers_per_page", 6))
+                    if puzzle_type_var.get() == "sudoku"
+                    else int(s.get("nurikabe_answers_per_page", 6)),
                     "label_font": str(s.get("label_font", "Helvetica")),
                     "label_font_size": int(s.get("label_font_size", 10)),
                     "digit_font": str(s.get("digit_font", "Helvetica")),
@@ -378,9 +392,12 @@ def run_app() -> None:
                     "template": dict(s.get("template", {})) if isinstance(s.get("template", {}), dict) else {},
                 }
 
-                from sudoku.pdf_export import ExportConfig, export_sudoku_json_to_pdf
+                from sudoku.pdf_export import ExportConfig, export_nurikabe_json_to_pdf, export_sudoku_json_to_pdf
 
-                export_sudoku_json_to_pdf(out_path, pdf_path, ExportConfig.from_dict(cfg_dict))
+                if puzzle_type_var.get() == "nurikabe":
+                    export_nurikabe_json_to_pdf(out_path, pdf_path, ExportConfig.from_dict(cfg_dict))
+                else:
+                    export_sudoku_json_to_pdf(out_path, pdf_path, ExportConfig.from_dict(cfg_dict))
 
                 def _done_ok() -> None:
                     set_running(False)
@@ -520,7 +537,7 @@ def run_app() -> None:
 
         def worker() -> None:
             try:
-                from sudoku.pdf_export import ExportConfig, export_sudoku_json_to_pdf
+                from sudoku.pdf_export import ExportConfig, export_nurikabe_json_to_pdf, export_sudoku_json_to_pdf
 
                 ts_folder = make_timestamp_folder_name()
                 out_dir = os.path.join(out_base, ts_folder)
@@ -528,7 +545,10 @@ def run_app() -> None:
                 out_path = os.path.join(out_dir, "sudoku_book.pdf")
 
                 cfg = ExportConfig.from_dict(cfg_dict)
-                export_sudoku_json_to_pdf(in_json, out_path, cfg)
+                if puzzle_type_var.get() == "nurikabe":
+                    export_nurikabe_json_to_pdf(in_json, out_path, cfg)
+                else:
+                    export_sudoku_json_to_pdf(in_json, out_path, cfg)
 
                 def _done_ok() -> None:
                     set_pdf_running(False)
@@ -564,7 +584,8 @@ def run_app() -> None:
             messagebox.showerror("Invalid", "Please select at least one grid size")
             return
         
-        sizes = [[4, 9][i] for i in selected_indices]
+        opts = size_options_map.get(puzzle_type_var.get(), size_options_map["sudoku"])
+        sizes = [opts[i][1] for i in selected_indices if i < len(opts)]
         
         # Get counts per difficulty
         easy_count = pool_gen_easy_count_var.get()
@@ -617,7 +638,7 @@ def run_app() -> None:
 
         def worker() -> None:
             try:
-                pool = PuzzlePool()
+                pool = PuzzlePool(puzzle_type=puzzle_type_var.get())
                 total_added = 0
                 current = 0
                 
@@ -625,7 +646,7 @@ def run_app() -> None:
                     if pool_stop_flag.get("stop"):
                         break
                     
-                    size_tag_map = {4: "2x2", 9: "3x3"}
+                    size_tag_map = {4: "2x2", 9: "3x3", 5: "5x5", 7: "7x7"}
                     added = pool.generate_to_pool(
                         size=size,
                         difficulty=difficulty,
@@ -678,11 +699,11 @@ def run_app() -> None:
             return
 
         size = book_size_var.get()
-        size_tag_map = {4: "2x2", 9: "3x3"}
+        size_tag_map = {4: "2x2", 9: "3x3", 5: "5x5", 7: "7x7"}
         size_tag = size_tag_map.get(size, f"{size}x{size}")
         
         # Check pool availability
-        pool = PuzzlePool()
+        pool = PuzzlePool(puzzle_type=puzzle_type_var.get())
         counts = pool.get_counts()
         size_counts = counts.get(str(size), {})
         
@@ -740,6 +761,7 @@ def run_app() -> None:
                         "medium_count": m_n,
                         "hard_count": h_n,
                         "book_id": book_id,
+                        "puzzle_type": puzzle_type_var.get(),
                     },
                     "items": puzzles,
                 }
@@ -789,8 +811,11 @@ def run_app() -> None:
                     "template": dict(s.get("template", {})) if isinstance(s.get("template", {}), dict) else {},
                 }
 
-                from sudoku.pdf_export import ExportConfig, export_sudoku_json_to_pdf
-                export_sudoku_json_to_pdf(json_path, pdf_path, ExportConfig.from_dict(cfg_dict))
+                from sudoku.pdf_export import ExportConfig, export_nurikabe_json_to_pdf, export_sudoku_json_to_pdf
+                if puzzle_type_var.get() == "nurikabe":
+                    export_nurikabe_json_to_pdf(json_path, pdf_path, ExportConfig.from_dict(cfg_dict))
+                else:
+                    export_sudoku_json_to_pdf(json_path, pdf_path, ExportConfig.from_dict(cfg_dict))
 
                 def _done_ok() -> None:
                     state.is_running = False
@@ -824,27 +849,40 @@ def run_app() -> None:
     frm = ttk.Frame(tab_pool)
     frm.pack(fill="both", expand=True)
 
-    title = ttk.Label(frm, text="Puzzle Pool - Generate Sudoku to Pool", font=("Segoe UI", 16, "bold"))
+    title = ttk.Label(frm, text="Puzzle Pool - Generate to Pool", font=("Segoe UI", 16, "bold"))
     title.pack(anchor="w")
+
+    type_row = ttk.Frame(frm)
+    type_row.pack(anchor="w", pady=(6, 0))
+    ttk.Label(type_row, text="Puzzle Type").pack(side="left")
+    ttk.Combobox(type_row, textvariable=puzzle_type_var, values=["sudoku", "nurikabe"], width=12, state="readonly").pack(
+        side="left", padx=8
+    )
 
     ttk.Separator(frm).pack(fill="x", pady=10)
 
     grid = ttk.Frame(frm)
     grid.pack(fill="x")
 
-    # Grid sizes - multi select with subgrid labels
+    # Grid sizes - multi select
     ttk.Label(grid, text="Grid sizes (Ctrl+Click multi-select)").grid(row=0, column=0, sticky="nw", padx=2, pady=6)
     size_listbox = tk.Listbox(grid, height=7, selectmode="multiple", exportselection=False)
     size_listbox.grid(row=0, column=1, sticky="w", pady=6)
-    # Format: (display_label, actual_size)
-    size_options = [
-        ("2x2 (4 cells)", 4),
-        ("3x3 (9 cells)", 9),
-    ]
-    for label, size in size_options:
-        size_listbox.insert(tk.END, label)
-    # Select 2x2 by default
-    size_listbox.selection_set(0)
+
+    size_options_map = {
+        "sudoku": [("2x2 (4 cells)", 4), ("3x3 (9 cells)", 9)],
+        "nurikabe": [("5x5", 5), ("7x7", 7)],
+    }
+
+    def refresh_pool_size_options() -> None:
+        size_listbox.delete(0, tk.END)
+        opts = size_options_map.get(puzzle_type_var.get(), size_options_map["sudoku"])
+        for label, _size in opts:
+            size_listbox.insert(tk.END, label)
+        if size_listbox.size() > 0:
+            size_listbox.selection_set(0)
+
+    refresh_pool_size_options()
 
     # Count per difficulty
     ttk.Label(grid, text="Count per difficulty").grid(row=1, column=0, sticky="w", padx=2, pady=6)
@@ -864,7 +902,8 @@ def run_app() -> None:
     ttk.Checkbutton(seed_row, text="Enable", variable=pool_gen_seed_enabled).pack(side="left")
     ttk.Entry(seed_row, textvariable=pool_gen_seed_value, width=16).pack(side="left", padx=8)
 
-    ttk.Label(grid, text="Lesson mode").grid(row=3, column=0, sticky="w", padx=2, pady=6)
+    lesson_lbl = ttk.Label(grid, text="Lesson mode")
+    lesson_lbl.grid(row=3, column=0, sticky="w", padx=2, pady=6)
     lesson_box = ttk.Frame(grid)
     lesson_box.grid(row=3, column=1, sticky="w")
     ttk.Radiobutton(lesson_box, text="A (kỹ thuật)", variable=lesson_mode_var, value=LessonMode.A.value).pack(side="left", padx=6)
@@ -921,20 +960,17 @@ def run_app() -> None:
     pool_status_scroll.config(command=pool_status_text.yview)
 
     def refresh_pool_status():
-        pool = PuzzlePool()
+        pool = PuzzlePool(puzzle_type=puzzle_type_var.get())
         counts = pool.get_counts()
         stats = pool.get_stats()
         
         # Size to subgrid label mapping
-        size_labels = {
-            4: "2x2 (4 cells)",
-            9: "3x3 (9 cells)",
-        }
+        size_labels = {4: "2x2 (4 cells)", 9: "3x3 (9 cells)", 5: "5x5", 7: "7x7"}
         
         lines = [f"Total in pool: {stats['total']} | Used: {stats['used']} | Available: {stats['unused']}", ""]
         lines.append("Available by size and difficulty:")
         
-        for size in [4, 9]:
+        for size in pool.supported_sizes():
             size_key = str(size)
             data = counts.get(size_key, {})
             total = data.get("total", 0)
@@ -967,7 +1003,7 @@ def run_app() -> None:
 
     def refresh_books_list():
         books_listbox.delete(0, tk.END)
-        pool = PuzzlePool()
+        pool = PuzzlePool(puzzle_type=puzzle_type_var.get())
         books = pool.get_books()
         for book in books:
             book_id = book["book_id"]
@@ -981,7 +1017,7 @@ def run_app() -> None:
         sel = books_listbox.curselection()
         if sel:
             idx = sel[0]
-            pool = PuzzlePool()
+            pool = PuzzlePool(puzzle_type=puzzle_type_var.get())
             books = pool.get_books()
             if idx < len(books):
                 selected_book_id_var.set(books[idx]["book_id"])
@@ -1010,7 +1046,7 @@ def run_app() -> None:
         
         def worker():
             try:
-                pool = PuzzlePool()
+                pool = PuzzlePool(puzzle_type=puzzle_type_var.get())
                 
                 # Reset puzzles for this book so they can be reused
                 puzzles = pool.recreate_book(book_id)
@@ -1055,12 +1091,16 @@ def run_app() -> None:
                     "page_height_in": page_h,
                     "orientation": str(s.get("orientation", "portrait")),
                     "margin_in": float(s.get("margin_in", 0.5)),
-                    "puzzles_per_page": int(s.get("puzzles_per_page", 4)),
+                    "puzzles_per_page": int(s.get("puzzles_per_page", 4))
+                    if puzzle_type_var.get() == "sudoku"
+                    else int(s.get("nurikabe_puzzles_per_page", 4)),
                     "show_level": bool(s.get("show_level", True)),
                     "level_field": "difficulty",
                     "title": book_title_var.get() or f"Book {book_id}",
                     "answer_key_title": "Answer Key",
-                    "answers_per_page": int(s.get("answers_per_page", 6)),
+                    "answers_per_page": int(s.get("answers_per_page", 6))
+                    if puzzle_type_var.get() == "sudoku"
+                    else int(s.get("nurikabe_answers_per_page", 6)),
                     "label_font": str(s.get("label_font", "Helvetica")),
                     "label_font_size": int(s.get("label_font_size", 10)),
                     "digit_font": str(s.get("digit_font", "Helvetica")),
@@ -1085,8 +1125,11 @@ def run_app() -> None:
                     "template": dict(s.get("template", {})) if isinstance(s.get("template", {}), dict) else {},
                 }
                 
-                from sudoku.pdf_export import ExportConfig, export_sudoku_json_to_pdf
-                export_sudoku_json_to_pdf(json_path, pdf_path, ExportConfig.from_dict(cfg_dict))
+                from sudoku.pdf_export import ExportConfig, export_nurikabe_json_to_pdf, export_sudoku_json_to_pdf
+                if puzzle_type_var.get() == "nurikabe":
+                    export_nurikabe_json_to_pdf(json_path, pdf_path, ExportConfig.from_dict(cfg_dict))
+                else:
+                    export_sudoku_json_to_pdf(json_path, pdf_path, ExportConfig.from_dict(cfg_dict))
                 
                 # Mark puzzles as used again
                 for p in puzzles:
@@ -1145,7 +1188,8 @@ def run_app() -> None:
     ttk.Button(book_grid, text="Browse...", command=choose_book_output_dir).grid(row=1, column=2, sticky="w", padx=6, pady=6)
 
     ttk.Label(book_grid, text="Grid Size").grid(row=2, column=0, sticky="w", padx=2, pady=6)
-    ttk.Combobox(book_grid, textvariable=book_size_var, values=[4, 9], width=10, state="readonly").grid(row=2, column=1, sticky="w", pady=6)
+    book_size_combo = ttk.Combobox(book_grid, textvariable=book_size_var, values=[4, 9], width=10, state="readonly")
+    book_size_combo.grid(row=2, column=1, sticky="w", pady=6)
 
     ttk.Label(book_grid, text="Puzzles by difficulty").grid(row=3, column=0, sticky="w", padx=2, pady=6)
     book_counts = ttk.Frame(book_grid)
@@ -1264,6 +1308,8 @@ def run_app() -> None:
             "margin_in": float(pdf_margin_in_var.get()),
             "puzzles_per_page": int(pdf_puzzles_per_page_var.get()),
             "answers_per_page": int(pdf_answers_per_page_var.get()),
+            "nurikabe_puzzles_per_page": int(nurikabe_puzzles_per_page_var.get()),
+            "nurikabe_answers_per_page": int(nurikabe_answers_per_page_var.get()),
             "show_level": bool(pdf_show_level_var.get()),
             "label_font": pdf_label_font_var.get().strip() or "Helvetica",
             "label_font_size": int(pdf_label_font_size_var.get()),
@@ -1602,13 +1648,22 @@ def run_app() -> None:
         img_var=template_section_hard_image_path_var,
         body_key="section_hard_body",
     )
-    ttk.Label(panel_puzzles, text="Puzzles per page").grid(row=4, column=0, sticky="w", padx=2, pady=(14, 6))
+    ttk.Label(panel_puzzles, text="Sudoku - Puzzles per page").grid(row=4, column=0, sticky="w", padx=2, pady=(14, 6))
     ttk.Combobox(panel_puzzles, textvariable=pdf_puzzles_per_page_var, values=[1, 2, 4, 6, 8, 9], width=10).grid(
         row=5, column=0, sticky="w", padx=2
     )
-    ttk.Label(panel_puzzles, text="Answers per page").grid(row=6, column=0, sticky="w", padx=2, pady=(10, 6))
+    ttk.Label(panel_puzzles, text="Sudoku - Answers per page").grid(row=6, column=0, sticky="w", padx=2, pady=(10, 6))
     ttk.Combobox(panel_puzzles, textvariable=pdf_answers_per_page_var, values=[4, 6, 8, 9, 12], width=10).grid(
         row=7, column=0, sticky="w", padx=2
+    )
+
+    ttk.Label(panel_puzzles, text="Nurikabe - Puzzles per page").grid(row=30, column=0, sticky="w", padx=2, pady=(14, 6))
+    ttk.Combobox(panel_puzzles, textvariable=nurikabe_puzzles_per_page_var, values=[1, 2, 4, 6, 8, 9], width=10).grid(
+        row=31, column=0, sticky="w", padx=2
+    )
+    ttk.Label(panel_puzzles, text="Nurikabe - Answers per page").grid(row=32, column=0, sticky="w", padx=2, pady=(10, 6))
+    ttk.Combobox(panel_puzzles, textvariable=nurikabe_answers_per_page_var, values=[4, 6, 8, 9, 12], width=10).grid(
+        row=33, column=0, sticky="w", padx=2
     )
 
     # Notes / CTA
@@ -1858,6 +1913,8 @@ def run_app() -> None:
         pdf_margin_in_var,
         pdf_puzzles_per_page_var,
         pdf_answers_per_page_var,
+        nurikabe_puzzles_per_page_var,
+        nurikabe_answers_per_page_var,
         pdf_show_level_var,
         pdf_label_font_var,
         pdf_label_font_size_var,
@@ -1905,6 +1962,32 @@ def run_app() -> None:
 
     for tw in [title_body, copyright_body, how_body, notes_body, easy_body, medium_body, hard_body]:
         bind_text_autosave(tw)
+
+    def on_puzzle_type_change(*_args) -> None:
+        refresh_pool_size_options()
+        if puzzle_type_var.get() == "nurikabe":
+            book_size_combo["values"] = [5, 7]
+            book_size_var.set(5)
+            try:
+                lesson_lbl.grid_remove()
+                lesson_box.grid_remove()
+            except Exception:
+                pass
+        else:
+            book_size_combo["values"] = [4, 9]
+            book_size_var.set(9)
+            try:
+                lesson_lbl.grid()
+                lesson_box.grid()
+            except Exception:
+                pass
+        refresh_pool_status()
+        refresh_books_list()
+
+    try:
+        puzzle_type_var.trace_add("write", on_puzzle_type_change)
+    except Exception:
+        pass
 
     # Start at first page
     page_list.selection_set(0)

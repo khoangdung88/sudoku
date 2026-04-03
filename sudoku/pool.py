@@ -65,15 +65,29 @@ class PuzzlePoolItem:
 
 
 class PuzzlePool:
-    """Manages a pool of pre-generated Sudoku puzzles."""
+    """Manages a pool of pre-generated puzzles."""
 
-    POOL_FILENAME = "sudoku_pool.json"
+    POOL_FILENAMES = {
+        "sudoku": "sudoku_pool.json",
+        "nurikabe": "nurikabe_pool.json",
+    }
 
-    def __init__(self, base_dir: str = ".") -> None:
+    def __init__(self, base_dir: str = ".", *, puzzle_type: str = "sudoku") -> None:
         self._base_dir = base_dir
-        self._pool_path = os.path.join(base_dir, self.POOL_FILENAME)
+        self._puzzle_type = puzzle_type
+        filename = self.POOL_FILENAMES.get(puzzle_type, self.POOL_FILENAMES["sudoku"])
+        self._pool_path = os.path.join(base_dir, filename)
         self._items: List[PuzzlePoolItem] = []
         self._load()
+
+    @property
+    def puzzle_type(self) -> str:
+        return self._puzzle_type
+
+    def supported_sizes(self) -> List[int]:
+        if self._puzzle_type == "nurikabe":
+            return [5, 7]
+        return [4, 6, 9, 12, 16, 25, 36]
 
     def _load(self) -> None:
         """Load pool from JSON file."""
@@ -107,7 +121,7 @@ class PuzzlePool:
         Returns: {size: {difficulty: count, "total": count}, ...}
         """
         result: Dict[str, Dict[str, int]] = {}
-        for size in [4, 6, 9, 12, 16, 25, 36]:
+        for size in self.supported_sizes():
             result[str(size)] = {"easy": 0, "medium": 0, "hard": 0, "total": 0}
         
         for item in self._items:
@@ -197,6 +211,63 @@ class PuzzlePool:
         Returns:
             Number of puzzles actually generated and added
         """
+        if self._puzzle_type == "nurikabe":
+            from .nurikabe.generator import NurikabeGenerator
+
+            gen = NurikabeGenerator()
+            added = 0
+            attempts = 0
+            max_attempts = max(count * 30, 150)
+
+            base_seed = seed
+            while added < count and attempts < max_attempts:
+                if stop_flag and stop_flag.get("stop"):
+                    break
+
+                attempts += 1
+                if on_progress and (attempts % 5 == 0 or added == 0):
+                    on_progress(
+                        added,
+                        count,
+                        f"Generating {difficulty} Nurikabe {size}x{size} ({added+1}/{count}) | attempt {attempts}",
+                    )
+
+                try:
+                    puzzle_seed = None
+                    if base_seed is not None:
+                        puzzle_seed = base_seed + attempts * 9973
+
+                    pz = gen.generate(size=size, difficulty=difficulty, seed=puzzle_seed)
+
+                    clue_count = sum(1 for r in range(size) for c in range(size) if int(pz.clues[r][c]) > 0)
+                    puzzle_id = f"{size}x{size}_{difficulty}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{added:05d}"
+
+                    item = PuzzlePoolItem(
+                        id=puzzle_id,
+                        puzzle=pz.clues_string(),
+                        solution=pz.wall_mask_string(),
+                        difficulty=difficulty,
+                        givens=clue_count,
+                        techniques=[],
+                        lessons=[],
+                        size=size,
+                        created_at=datetime.now().isoformat(),
+                        used=False,
+                    )
+
+                    self._items.append(item)
+                    added += 1
+                except Exception:
+                    continue
+
+            if added > 0:
+                self._save()
+
+            return added
+
+        if self._puzzle_type != "sudoku":
+            raise RuntimeError(f"Puzzle type not supported: {self._puzzle_type}")
+
         from .difficulty import Difficulty as DiffEnum
         
         generator = SudokuGenerator()

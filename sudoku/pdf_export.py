@@ -129,6 +129,253 @@ def _safe_set_font(c: Canvas, name: str, size: int) -> None:
         c.setFont("Helvetica", size)
 
 
+def parse_csv_grid(s: str) -> Tuple[int, List[List[int]]]:
+    rows = [ln.strip() for ln in str(s).replace("\r\n", "\n").replace("\r", "\n").split("\n") if ln.strip()]
+    if not rows:
+        raise ValueError("Empty grid")
+    grid: List[List[int]] = []
+    for ln in rows:
+        grid.append([int(x.strip()) for x in ln.split(",") if x.strip() != ""])
+    n = len(grid)
+    if any(len(row) != n for row in grid):
+        raise ValueError("CSV grid must be square")
+    return n, grid
+
+
+def export_nurikabe_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: ExportConfig) -> None:
+    with open(input_json_path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    items = payload.get("items", [])
+    if not isinstance(items, list):
+        raise ValueError("Invalid JSON: items must be a list")
+
+    puzzles: List[Dict[str, object]] = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        puzzles.append(it)
+
+    page_size = (cfg.page_width_in * inch, cfg.page_height_in * inch)
+    if cfg.orientation.lower() == "landscape":
+        page_size = landscape(page_size)
+    else:
+        page_size = portrait(page_size)
+
+    c = Canvas(output_pdf_path, pagesize=page_size)
+    if cfg.pdf_title:
+        c.setTitle(cfg.pdf_title)
+    if cfg.pdf_author:
+        c.setAuthor(cfg.pdf_author)
+    if cfg.pdf_subject:
+        c.setSubject(cfg.pdf_subject)
+    if cfg.pdf_keywords:
+        c.setKeywords(cfg.pdf_keywords)
+
+    _register_custom_fonts(cfg.custom_fonts)
+    preferred_font: Optional[str] = None
+    if cfg.custom_fonts:
+        try:
+            first = cfg.custom_fonts[0]
+            if isinstance(first, dict):
+                preferred_font = str(first.get("name", "")).strip() or None
+        except Exception:
+            preferred_font = None
+
+    def _pick_font(primary: str) -> str:
+        if preferred_font:
+            return preferred_font
+        return primary
+
+    width, height = page_size
+
+    text_color = _hex_color(cfg.text_color)
+    grid_color = _hex_color(cfg.grid_color)
+    header_line_color = _hex_color(cfg.header_line_color)
+
+    margin = cfg.margin_in * inch
+
+    def draw_header(*, page_title: str) -> float:
+        if not cfg.header_enabled:
+            return height - margin
+
+        header_h = cfg.header_height_in * inch
+        y_top = height - margin
+        y_bottom = y_top - header_h
+
+        c.setStrokeColor(header_line_color)
+        c.setLineWidth(0.8)
+        c.line(margin, y_bottom, width - margin, y_bottom)
+
+        c.setFillColor(text_color)
+        _safe_set_font(c, _pick_font(cfg.header_font), cfg.header_font_size)
+
+        text_x = margin
+        icon_path = (cfg.header_icon_path or "").strip()
+        if icon_path:
+            try:
+                icon_h = max(0.05 * inch, cfg.header_icon_height_in * inch)
+                icon_w = icon_h
+                icon_y = y_bottom + (header_h - icon_h) / 2
+                c.drawImage(icon_path, margin, icon_y, width=icon_w, height=icon_h, mask='auto', preserveAspectRatio=True)
+                text_x = margin + icon_w + 8
+            except Exception:
+                text_x = margin
+
+        c.drawString(text_x, y_bottom + header_h * 0.28, page_title)
+
+        if cfg.header_show_page_number:
+            c.drawRightString(width - margin, y_bottom + header_h * 0.28, str(c.getPageNumber()))
+
+        content_pad = max(0.18 * inch, cfg.label_font_size * 1.0)
+        return y_bottom - content_pad
+
+    def draw_label(x: float, y: float, text: str) -> None:
+        c.setFillColor(text_color)
+        _safe_set_font(c, _pick_font(cfg.label_font), cfg.label_font_size)
+        c.drawString(x, y, text)
+
+    def draw_nurikabe_grid(
+        x: float,
+        y: float,
+        size_px: float,
+        *,
+        clues_grid: Tuple[int, List[List[int]]],
+        wall_grid: Optional[Tuple[int, List[List[int]]]] = None,
+        show_walls: bool,
+    ) -> None:
+        n, clues = clues_grid
+        cell = size_px / n
+
+        c.setStrokeColor(grid_color)
+        c.setLineWidth(max(0.4, cfg.grid_line_width))
+        c.rect(x, y, size_px, size_px)
+        for i in range(1, n):
+            c.line(x + i * cell, y, x + i * cell, y + size_px)
+            c.line(x, y + i * cell, x + size_px, y + i * cell)
+
+        if show_walls and wall_grid is not None:
+            _, walls = wall_grid
+            for r in range(n):
+                for col in range(n):
+                    if int(walls[r][col]) == 1:
+                        c.setFillColor(colors.black)
+                        c.rect(x + col * cell, y + (n - 1 - r) * cell, cell, cell, fill=1, stroke=0)
+
+        c.setFillColor(text_color)
+        _safe_set_font(c, _pick_font(cfg.digit_font), cfg.digit_font_size)
+        for r in range(n):
+            for col in range(n):
+                v = int(clues[r][col])
+                if v <= 0:
+                    continue
+                cx = x + (col + 0.5) * cell
+                cy = y + (n - 1 - r + 0.25) * cell
+                c.drawCentredString(cx, cy, str(v))
+
+    usable_w = width - 2 * margin
+    usable_h = height - 2 * margin
+
+    def layout_for(n: int) -> Tuple[int, int]:
+        if n == 1:
+            return 1, 1
+        if n == 2:
+            return 1, 2
+        if n == 3:
+            return 1, 3
+        if n == 4:
+            return 2, 2
+        if n == 6:
+            return 2, 3
+        if n == 8:
+            return 2, 4
+        if n == 9:
+            return 3, 3
+        return 2, 2
+
+    rows, cols = layout_for(cfg.puzzles_per_page)
+    slot_w = usable_w / cols
+    slot_h = usable_h / rows
+    grid_size = min(slot_w, slot_h) * 0.78
+
+    # Puzzle pages
+    page_items: List[Dict[str, object]] = []
+    start_index = 1
+
+    def draw_puzzle_page(page_items: List[Dict[str, object]], start_index: int) -> None:
+        page_top = draw_header(page_title=str(cfg.title or "Nurikabe"))
+        y0 = page_top
+        for idx, it in enumerate(page_items):
+            rr = idx // cols
+            cc = idx % cols
+            gx = margin + cc * slot_w + (slot_w - grid_size) / 2
+            gy = y0 - (rr + 1) * slot_h + (slot_h - grid_size) / 2
+            puzzle_str = it.get("puzzle", "")
+            size, grid = parse_csv_grid(str(puzzle_str))
+            if cfg.show_level:
+                lv = str(it.get(cfg.level_field, ""))
+                draw_label(gx, gy + grid_size + cfg.label_font_size * 0.6, f"#{start_index + idx} ({lv})")
+            else:
+                draw_label(gx, gy + grid_size + cfg.label_font_size * 0.6, f"#{start_index + idx}")
+            draw_nurikabe_grid(gx, gy, grid_size, clues_grid=(size, grid), wall_grid=None, show_walls=False)
+        c.showPage()
+
+    for it in puzzles:
+        page_items.append(it)
+        if len(page_items) >= cfg.puzzles_per_page:
+            draw_puzzle_page(page_items, start_index)
+            start_index += len(page_items)
+            page_items = []
+
+    if page_items:
+        draw_puzzle_page(page_items, start_index)
+        start_index += len(page_items)
+
+    # Answer pages
+    rows_a, cols_a = layout_for(cfg.answers_per_page)
+    slot_w_a = usable_w / cols_a
+    slot_h_a = usable_h / rows_a
+    grid_size_a = min(slot_w_a, slot_h_a) * 0.78
+
+    def draw_answer_page(page_items: List[Dict[str, object]], start_index: int) -> None:
+        page_top = draw_header(page_title=cfg.answer_key_title)
+        y0 = page_top
+        for idx, it in enumerate(page_items):
+            rr = idx // cols_a
+            cc = idx % cols_a
+            gx = margin + cc * slot_w_a + (slot_w_a - grid_size_a) / 2
+            gy = y0 - (rr + 1) * slot_h_a + (slot_h_a - grid_size_a) / 2
+            puzzle_str = it.get("puzzle", "")
+            sol_str = it.get("solution", "")
+            size, clues_grid = parse_csv_grid(str(puzzle_str))
+            size2, wall_grid = parse_csv_grid(str(sol_str))
+            if size2 != size:
+                raise ValueError("Solution size mismatch")
+            draw_label(gx, gy + grid_size_a + cfg.label_font_size * 0.5, f"#{start_index + idx}")
+            draw_nurikabe_grid(
+                gx,
+                gy,
+                grid_size_a,
+                clues_grid=(size, clues_grid),
+                wall_grid=(size2, wall_grid),
+                show_walls=True,
+            )
+        c.showPage()
+
+    page_items = []
+    start_index = 1
+    for it in puzzles:
+        page_items.append(it)
+        if len(page_items) >= cfg.answers_per_page:
+            draw_answer_page(page_items, start_index)
+            start_index += len(page_items)
+            page_items = []
+    if page_items:
+        draw_answer_page(page_items, start_index)
+
+    c.save()
+
+
 def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: ExportConfig) -> None:
     with open(input_json_path, "r", encoding="utf-8") as f:
         payload = json.load(f)
