@@ -10,6 +10,7 @@ try:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import landscape, portrait
     from reportlab.lib.units import inch
+    from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen.canvas import Canvas
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
@@ -195,6 +196,22 @@ def export_nurikabe_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg:
 
     margin = cfg.margin_in * inch
 
+    def _draw_image_cover(image_path: str) -> None:
+        """Draw an image to fully cover the page (full-bleed)."""
+        try:
+            img = ImageReader(image_path)
+            iw, ih = img.getSize()
+            if not iw or not ih:
+                raise ValueError("Invalid image")
+            scale = max(width / float(iw), height / float(ih))
+            draw_w = float(iw) * scale
+            draw_h = float(ih) * scale
+            x0 = (width - draw_w) / 2.0
+            y0 = (height - draw_h) / 2.0
+            c.drawImage(img, x0, y0, width=draw_w, height=draw_h, mask='auto')
+        except Exception:
+            c.drawImage(image_path, 0, 0, width=width, height=height, mask='auto', preserveAspectRatio=True)
+
     def draw_header(*, page_title: str) -> float:
         if not cfg.header_enabled:
             return height - margin
@@ -239,12 +256,12 @@ def export_nurikabe_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg:
         x: float,
         y: float,
         size_px: float,
+        clues: List[List[int]],
+        wall_mask: Optional[List[List[int]]],
         *,
-        clues_grid: Tuple[int, List[List[int]]],
-        wall_grid: Optional[Tuple[int, List[List[int]]]] = None,
         show_walls: bool,
     ) -> None:
-        n, clues = clues_grid
+        n = len(clues)
         cell = size_px / n
 
         c.setStrokeColor(grid_color)
@@ -263,15 +280,24 @@ def export_nurikabe_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg:
                         c.rect(x + col * cell, y + (n - 1 - r) * cell, cell, cell, fill=1, stroke=0)
 
         c.setFillColor(text_color)
-        _safe_set_font(c, _pick_font(cfg.digit_font), cfg.digit_font_size)
+        font_name = _pick_font(cfg.digit_font)
+        _safe_set_font(c, font_name, cfg.digit_font_size)
+        try:
+            ascent = pdfmetrics.getAscent(font_name) * cfg.digit_font_size / 1000.0
+            descent = pdfmetrics.getDescent(font_name) * cfg.digit_font_size / 1000.0
+        except Exception:
+            ascent = pdfmetrics.getAscent("Helvetica") * cfg.digit_font_size / 1000.0
+            descent = pdfmetrics.getDescent("Helvetica") * cfg.digit_font_size / 1000.0
+        font_h = ascent - descent
         for r in range(n):
             for col in range(n):
                 v = int(clues[r][col])
                 if v <= 0:
                     continue
                 cx = x + (col + 0.5) * cell
-                cy = y + (n - 1 - r + 0.25) * cell
-                c.drawCentredString(cx, cy, str(v))
+                cell_y = y + (n - 1 - r) * cell
+                baseline_y = cell_y + (cell - font_h) / 2.0 - descent
+                c.drawCentredString(cx, baseline_y, str(v))
 
     usable_w = width - 2 * margin
     usable_h = height - 2 * margin
@@ -488,21 +514,8 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
     def draw_text_page(*, header_title: str, title: str, body: str, image_path: str = "") -> None:
         # If image provided, draw full-page image instead of text
         if image_path and os.path.exists(image_path):
-            draw_header(page_title=header_title)
             try:
-                # Draw image to fill most of page (with margins)
-                img_margin = margin * 2
-                img_width = width - 2 * img_margin
-                img_height = height - cfg.header_height_in * inch - img_margin * 2
-                c.drawImage(
-                    image_path, 
-                    img_margin, 
-                    img_margin, 
-                    width=img_width, 
-                    height=img_height, 
-                    mask='auto', 
-                    preserveAspectRatio=True
-                )
+                _draw_image_cover(image_path)
             except Exception:
                 pass  # Fallback to text if image fails
             c.showPage()
@@ -537,7 +550,7 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
         if not image_path:
             return
         try:
-            c.drawImage(image_path, 0, 0, width=width, height=height, mask='auto', preserveAspectRatio=True)
+            _draw_image_cover(image_path)
             c.showPage()
         except Exception:
             return
@@ -629,7 +642,15 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
         digit_size = cfg.digit_font_size
         if size > 9:
             digit_size = int(digit_size * 0.7)  # Smaller digits for larger grids
-        _safe_set_font(c, cfg.digit_font, digit_size)
+        font_name = cfg.digit_font
+        _safe_set_font(c, font_name, digit_size)
+        try:
+            ascent = pdfmetrics.getAscent(font_name) * digit_size / 1000.0
+            descent = pdfmetrics.getDescent(font_name) * digit_size / 1000.0
+        except Exception:
+            ascent = pdfmetrics.getAscent("Helvetica") * digit_size / 1000.0
+            descent = pdfmetrics.getDescent("Helvetica") * digit_size / 1000.0
+        font_h = ascent - descent
         
         for r in range(size):
             for col in range(size):
@@ -637,8 +658,9 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
                 if v == 0:
                     continue
                 cx = x + (col + 0.5) * cell
-                cy = y + (size - 1 - r + 0.35) * cell
-                c.drawCentredString(cx, cy, str(v))
+                cell_y = y + (size - 1 - r) * cell
+                baseline_y = cell_y + (cell - font_h) / 2.0 - descent
+                c.drawCentredString(cx, baseline_y, str(v))
 
     def draw_label(x: float, y: float, text: str) -> None:
         c.setFillColor(text_color)
