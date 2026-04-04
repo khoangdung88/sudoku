@@ -121,6 +121,7 @@ def run_app() -> None:
 
     template_notes_enabled_var = tk.BooleanVar(value=False)
     template_notes_title_var = tk.StringVar(value="Notes / CTA")
+    template_notes_image_path_var = tk.StringVar(value="")
 
     template_section_dividers_enabled_var = tk.BooleanVar(value=True)
     template_section_dividers_include_lesson_var = tk.BooleanVar(value=True)
@@ -469,21 +470,25 @@ def run_app() -> None:
                 "title_page": {
                     "enabled": bool(template_title_enabled_var.get()),
                     "title": template_title_title_var.get().strip() or pdf_title_var.get().strip() or "Sudoku",
+                    "image_path": template_title_image_path_var.get().strip(),
                     "body": template_widgets.get("title_body").get("1.0", "end").rstrip("\n") if template_widgets.get("title_body") else "",
                 },
                 "copyright": {
                     "enabled": bool(template_copyright_enabled_var.get()),
                     "title": template_copyright_title_var.get().strip() or "Copyright",
+                    "image_path": template_copyright_image_path_var.get().strip(),
                     "body": template_widgets.get("copyright_body").get("1.0", "end").rstrip("\n") if template_widgets.get("copyright_body") else "",
                 },
                 "how_to_play": {
                     "enabled": bool(template_how_enabled_var.get()),
                     "title": template_how_title_var.get().strip() or "How to Play",
+                    "image_path": template_how_image_path_var.get().strip(),
                     "body": template_widgets.get("how_body").get("1.0", "end").rstrip("\n") if template_widgets.get("how_body") else "",
                 },
                 "notes_cta": {
                     "enabled": bool(template_notes_enabled_var.get()),
                     "title": template_notes_title_var.get().strip() or "Notes / CTA",
+                    "image_path": template_notes_image_path_var.get().strip(),
                     "body": template_widgets.get("notes_body").get("1.0", "end").rstrip("\n") if template_widgets.get("notes_body") else "",
                 },
                 "section_dividers": {
@@ -1251,12 +1256,10 @@ def run_app() -> None:
     # Autosave settings (debounced)
     autosave_job: dict[str, object] = {"id": None}
 
-    def build_pdf_settings_dict() -> dict[str, object]:
+    def build_pdf_settings_dict() -> dict:
         def tget(key: str) -> str:
             w = template_widgets.get(key)
-            if not w:
-                return ""
-            return w.get("1.0", "end").rstrip("\n")
+            return w.get("1.0", "end").rstrip("\n") if w else ""
 
         return {
             "trim_size": pdf_trim_preset_var.get().strip(),
@@ -1312,11 +1315,27 @@ def run_app() -> None:
                 "notes_cta": {
                     "enabled": bool(template_notes_enabled_var.get()),
                     "title": template_notes_title_var.get().strip() or "Notes / CTA",
+                    "image_path": template_notes_image_path_var.get().strip(),
                     "body": tget("notes_body"),
                 },
                 "section_dividers": {
                     "enabled": bool(template_section_dividers_enabled_var.get()),
                     "include_level_lesson": bool(template_section_dividers_include_lesson_var.get()),
+                    "easy": {
+                        "title": template_section_easy_title_var.get().strip() or "Puzzle Section: Easy",
+                        "image_path": template_section_easy_image_path_var.get().strip(),
+                        "body": tget("section_easy_body"),
+                    },
+                    "medium": {
+                        "title": template_section_medium_title_var.get().strip() or "Puzzle Section: Medium",
+                        "image_path": template_section_medium_image_path_var.get().strip(),
+                        "body": tget("section_medium_body"),
+                    },
+                    "hard": {
+                        "title": template_section_hard_title_var.get().strip() or "Puzzle Section: Hard",
+                        "image_path": template_section_hard_image_path_var.get().strip(),
+                        "body": tget("section_hard_body"),
+                    },
                 },
             },
         }
@@ -1618,9 +1637,25 @@ def run_app() -> None:
     )
     ttk.Label(panel_notes, text="Title").grid(row=2, column=0, sticky="w", padx=2)
     ttk.Entry(panel_notes, textvariable=template_notes_title_var, width=50).grid(row=3, column=0, sticky="we", padx=2, pady=(0, 6))
+
+    ttk.Label(panel_notes, text="Image (optional - overrides text content)").grid(row=4, column=0, sticky="w", padx=2, pady=(6, 2))
+    notes_img_row = ttk.Frame(panel_notes)
+    notes_img_row.grid(row=5, column=0, sticky="we", padx=2, pady=(0, 6))
+    ttk.Entry(notes_img_row, textvariable=template_notes_image_path_var, width=46).pack(side="left", fill="x", expand=True)
+
+    def pick_notes_image() -> None:
+        path = filedialog.askopenfilename(
+            title="Choose notes page image",
+            filetypes=[("Images", "*.png;*.jpg;*.jpeg;*.bmp;*.gif")],
+        )
+        if path:
+            template_notes_image_path_var.set(path)
+
+    ttk.Button(notes_img_row, text="Browse...", command=pick_notes_image).pack(side="left", padx=8)
+
     notes_body = tk.Text(panel_notes, height=10)
-    notes_body.grid(row=4, column=0, sticky="nsew", padx=2)
-    panel_notes.rowconfigure(4, weight=1)
+    notes_body.grid(row=6, column=0, sticky="nsew", padx=2)
+    panel_notes.rowconfigure(6, weight=1)
     panel_notes.columnconfigure(0, weight=1)
     template_widgets["notes_body"] = notes_body
 
@@ -1820,6 +1855,7 @@ def run_app() -> None:
         if isinstance(nt, dict):
             template_notes_enabled_var.set(bool(nt.get("enabled", False)))
             template_notes_title_var.set(str(nt.get("title", template_notes_title_var.get())))
+            template_notes_image_path_var.set(str(nt.get("image_path", "")))
             notes_body.delete("1.0", "end")
             notes_body.insert("1.0", str(nt.get("body", "")))
 
@@ -1892,6 +1928,7 @@ def run_app() -> None:
         template_how_image_path_var,
         template_notes_enabled_var,
         template_notes_title_var,
+        template_notes_image_path_var,
         template_section_dividers_enabled_var,
         template_section_dividers_include_lesson_var,
         template_section_easy_title_var,

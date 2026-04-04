@@ -10,6 +10,7 @@ try:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import landscape, portrait
     from reportlab.lib.units import inch
+    from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen.canvas import Canvas
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
@@ -183,6 +184,19 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
 
     margin = cfg.margin_in * inch
 
+    def _draw_image_cover(image_path: str, *, x: float, y: float, w: float, h: float) -> None:
+        """Draw image to fully cover the target box (scale-to-fill + crop), no letterboxing."""
+        img = ImageReader(image_path)
+        iw, ih = img.getSize()
+        if not iw or not ih:
+            return
+        scale = max(w / float(iw), h / float(ih))
+        dw = float(iw) * scale
+        dh = float(ih) * scale
+        dx = x - (dw - w) / 2.0
+        dy = y - (dh - h) / 2.0
+        c.drawImage(img, dx, dy, width=dw, height=dh, mask='auto')
+
     def draw_header(*, page_title: str) -> float:
         if not cfg.header_enabled:
             return height - margin
@@ -241,25 +255,12 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
     def draw_text_page(*, header_title: str, title: str, body: str, image_path: str = "") -> None:
         # If image provided, draw full-page image instead of text
         if image_path and os.path.exists(image_path):
-            draw_header(page_title=header_title)
             try:
-                # Draw image to fill most of page (with margins)
-                img_margin = margin * 2
-                img_width = width - 2 * img_margin
-                img_height = height - cfg.header_height_in * inch - img_margin * 2
-                c.drawImage(
-                    image_path, 
-                    img_margin, 
-                    img_margin, 
-                    width=img_width, 
-                    height=img_height, 
-                    mask='auto', 
-                    preserveAspectRatio=True
-                )
+                _draw_image_cover(image_path, x=0, y=0, w=width, h=height)
+                c.showPage()
+                return
             except Exception:
                 pass  # Fallback to text if image fails
-            c.showPage()
-            return
             
         # Text content rendering
         top = draw_header(page_title=header_title)
@@ -290,7 +291,7 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
         if not image_path:
             return
         try:
-            c.drawImage(image_path, 0, 0, width=width, height=height, mask='auto', preserveAspectRatio=True)
+            _draw_image_cover(image_path, x=0, y=0, w=width, h=height)
             c.showPage()
         except Exception:
             return
@@ -382,15 +383,30 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
         digit_size = cfg.digit_font_size
         if size > 9:
             digit_size = int(digit_size * 0.7)  # Smaller digits for larger grids
-        _safe_set_font(c, cfg.digit_font, digit_size)
-        
+
+        digit_font_name = cfg.digit_font
+        try:
+            c.setFont(digit_font_name, digit_size)
+        except Exception:
+            digit_font_name = "Helvetica"
+            c.setFont(digit_font_name, digit_size)
+
+        try:
+            ascent = pdfmetrics.getAscent(digit_font_name) * digit_size / 1000.0
+            descent = pdfmetrics.getDescent(digit_font_name) * digit_size / 1000.0
+        except Exception:
+            ascent = digit_size * 0.7
+            descent = -digit_size * 0.2
+        baseline_shift = (ascent + descent) / 2.0
+
         for r in range(size):
             for col in range(size):
                 v = grid[r][col]
                 if v == 0:
                     continue
                 cx = x + (col + 0.5) * cell
-                cy = y + (size - 1 - r + 0.35) * cell
+                center_y = y + (size - 1 - r + 0.5) * cell
+                cy = center_y - baseline_shift
                 c.drawCentredString(cx, cy, str(v))
 
     def draw_label(x: float, y: float, text: str) -> None:
