@@ -185,16 +185,26 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
     margin = cfg.margin_in * inch
 
     def _draw_image_cover(image_path: str, *, x: float, y: float, w: float, h: float) -> None:
-        """Draw image to fully cover the target box (scale-to-fill + crop), no letterboxing."""
+        """Draw image prioritizing full width, but never crop - if too tall, fit to height instead."""
         img = ImageReader(image_path)
         iw, ih = img.getSize()
         if not iw or not ih:
             return
-        scale = max(w / float(iw), h / float(ih))
-        dw = float(iw) * scale
-        dh = float(ih) * scale
-        dx = x - (dw - w) / 2.0
-        dy = y - (dh - h) / 2.0
+        # Try scaling to fill width first
+        scale_w = w / float(iw)
+        dh = float(ih) * scale_w
+        # If resulting height fits page, use width-scale (full width)
+        if dh <= h:
+            dw = w
+            dx = x
+            dy = y + (h - dh) / 2.0  # Center vertically
+        else:
+            # Too tall - scale to fit height instead (no cropping)
+            scale_h = h / float(ih)
+            dw = float(iw) * scale_h
+            dh = h
+            dx = x + (w - dw) / 2.0  # Center horizontally
+            dy = y
         c.drawImage(img, dx, dy, width=dw, height=dh, mask='auto')
 
     def draw_header(*, page_title: str) -> float:
@@ -342,8 +352,8 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
         vals = [int(ch) for ch in s]
         return size, [vals[i * size : (i + 1) * size] for i in range(size)]
 
-    def draw_grid(x: float, y: float, size_px: float, grid_data: Tuple[int, List[List[int]]], *, show_digits: bool) -> None:
-        """Draw Sudoku grid with variable size."""
+    def draw_grid(x: float, y: float, size_px: float, grid_data: Tuple[int, List[List[int]]], *, show_digits: bool, puzzle_grid: Optional[List[List[int]]] = None) -> None:
+        """Draw Sudoku grid with variable size. If puzzle_grid is provided, highlights givens with gray background."""
         size, grid = grid_data
         cell = size_px / size
         c.setStrokeColor(grid_color)
@@ -361,6 +371,16 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
             box_rows, box_cols = 4, 4
         else:
             box_rows = box_cols = int(size ** 0.5)
+
+        # Draw gray background for givens if puzzle_grid provided
+        if puzzle_grid is not None:
+            c.setFillColor(colors.HexColor("#E8E8E8"))  # Light gray
+            for r in range(size):
+                for col in range(size):
+                    if puzzle_grid[r][col] != 0:  # This is a given
+                        rect_x = x + col * cell
+                        rect_y = y + (size - 1 - r) * cell
+                        c.rect(rect_x, rect_y, cell, cell, fill=True, stroke=False)
 
         # Draw thin lines
         c.setLineWidth(cfg.grid_line_width)
@@ -398,6 +418,11 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
             ascent = digit_size * 0.7
             descent = -digit_size * 0.2
         baseline_shift = (ascent + descent) / 2.0
+
+        # Font metrics centering is mathematically correct but can look slightly off visually,
+        # especially for common PDF base fonts. Apply a small nudge for 9x9 (3x3) Sudoku.
+        if size == 9:
+            baseline_shift += digit_size * 0.12
 
         for r in range(size):
             for col in range(size):
@@ -494,6 +519,11 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
         bool(section_divider.get("include_level_lesson", True)) if isinstance(section_divider, dict) else True
     )
 
+    generic_puzzle_section = tget("puzzle_section", {})
+    generic_puzzle_section_enabled = (
+        bool(generic_puzzle_section.get("enabled", False)) if isinstance(generic_puzzle_section, dict) else False
+    )
+
     def _divider_cfg_for(level: str) -> Dict[str, object]:
         if isinstance(section_divider, dict):
             v = section_divider.get(level)
@@ -509,7 +539,7 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
 
         if section_divider_include_lesson:
             lesson = level_lesson_body(level)
-            if lesson:
+            if lesson and False:  # DISABLED: no longer append lesson text to divider
                 body = (body + "\n\n" + lesson).strip() if body.strip() else lesson
         draw_text_page(header_title=cfg.title, title=title, body=body, image_path=image_path)
 
@@ -519,8 +549,6 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
         items_lv = buckets[lv]
         if not items_lv:
             continue
-        if section_divider_enabled:
-            draw_section_divider(lv)
 
         buf: List[Dict[str, object]] = []
         header_title = f"{cfg.title} - {lv.title()}"
@@ -533,9 +561,20 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
         if buf:
             puzzle_page(buf, page_start, header_title=header_title)
             page_start += len(buf)
+        
+        # Draw section divider AFTER finishing this level's puzzles
+        if section_divider_enabled:
+            draw_section_divider(lv)
 
     if other:
-        if section_divider_enabled:
+        if generic_puzzle_section_enabled and isinstance(generic_puzzle_section, dict):
+            draw_text_page(
+                header_title=cfg.title,
+                title=str(generic_puzzle_section.get("title", "Puzzle Section")),
+                body=str(generic_puzzle_section.get("body", "")),
+                image_path=str(generic_puzzle_section.get("image_path", "")),
+            )
+        elif section_divider_enabled:
             draw_text_page(header_title=cfg.title, title="Puzzle Section", body="")
         buf2: List[Dict[str, object]] = []
         for it in other:
@@ -571,9 +610,12 @@ def export_sudoku_json_to_pdf(input_json_path: str, output_pdf_path: str, cfg: E
                 gy = slot_top - grid_size_a - cfg.label_font_size * 1.6
 
                 sol_str = it.get("solution", "")
-                grid_data = parse_grid(sol_str)
+                puzzle_str = it.get("puzzle", "")
+                sol_grid_data = parse_grid(sol_str)
+                puzzle_grid_data = parse_grid(puzzle_str)
                 draw_label(gx, gy + grid_size_a + cfg.label_font_size * 0.5, f"#{start_index + idx}")
-                draw_grid(gx, gy, grid_size_a, grid_data, show_digits=True)
+                # Pass puzzle_grid to highlight givens with gray background
+                draw_grid(gx, gy, grid_size_a, sol_grid_data, show_digits=True, puzzle_grid=puzzle_grid_data[1])
 
             c.showPage()
 

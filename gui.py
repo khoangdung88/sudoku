@@ -21,7 +21,7 @@ class AppState:
 def run_app() -> None:
     root = tk.Tk()
     root.title("Sudoku KDP Generator")
-    root.geometry("720x520")
+    root.state('zoomed')  # Open maximized (full screen)
 
     state = AppState()
 
